@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Getter</title>
+    <style>
+        /* Estilo para o cabeçalho */
+        h1 {
+            text-align: center;
+            color: #FFFFFF;
+        }
+
+        /* Estilo para o formulário de upload */
+        form {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 400px;
+        }
+
+        /* Estilo para os botões */
+        input[type="submit"],
+        button {
+            background-color: #00fa97;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Estilo para a tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, td {
+            border: 1px solid #333;
+        }
+
+         td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        /* Estilo para a área de texto */
+        textarea {
+            width: 10%;
+            height: 76px;
+            padding: 5px;
+            margin: 5px 0;
+        }
+
+        /* Estilo para os botões de ação */
+        #btn-excluir-protocolos,
+        #btn-copiar-dados {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Estilo para o cabeçalho da tabela */
+    table th {
+        background-color: #007BFF; /* Cor de fundo para o cabeçalho */
+        color: #000; /* Cor do texto no cabeçalho */
+    }
+
+    /* Estilo para o botão */
+        #status-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        /* Estilo para o status "Em Uso" */
+        .in-use {
+            background-color: #FF0000; /* Vermelho */
+            color: #FFFFFF; /* Texto branco */
+        }
+        /* Estilo para o status "Livre" */
+        .free {
+            background-color: #00FF00; /* Verde */
+            color: #FFFFFF; /* Texto preto */
+        }
+
+ /* Estilo base para o botão */
+        #status-button {
+            padding: 10px 20px;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            background-color: #FFFFFF;
+                float: left; /* Coloca o botão no canto esquerdo */
+    background-color: #0d13a2; /* Cor de fundo */
+    color: #fff; /* Cor do texto */
+    padding: 10px 20px; /* Espaçamento interno */
+    font-weight: bold; /* Peso da fonte */
+        }
+
+        /* Estilo para o botão "Em Uso" */
+        #status-button.in-use {
+            background-color: #FF0000; /* Vermelho quando "Em Uso" */
+        }
+
+        /* Estilo para o botão "Livre" */
+        #status-button.free {
+            background-color: #00FF00; /* Verde quando "Livre" */
+        }
+         body {
+         background: #0d13a2;
+    }
+
+    form{
+        color: white;
+        font-size: 20px;
+            display: flex;
+    justify-content: center; /* Centralize os elementos horizontalmente */
+    align-items: center; /* Centralize os elementos verticalmente */
+    }
+
+    #tabela {
+    background-color: #fff; /* Define o fundo como branco */
+    border: 2px solid #77f3ae; /* Adiciona uma borda sólida de 2 pixels de largura com a cor #0d13a2 */
+}
+
+#buttons {
+    display: flex;
+    justify-content: center; /* Centralize os elementos horizontalmente */
+    align-items: center; /* Centralize os elementos verticalmente */
+    text-align: center;
+    position: relative;
+}
+
+#buttons button, #textarea-protocolos {
+    margin: 5px; /* Espaçamento entre os elementos */
+}
+
+#status-button {
+    position: absolute;
+    left: 0; /* Alinha o botão à esquerda */
+    top: 0; /* Alinha o botão no topo */
+}
+
+/* Define a classe para a div que contém a imagem */
+.logo {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Estilize a imagem como desejado */
+.logo img {
+    width: 100px; /* Ajuste o tamanho da imagem conforme necessário */
+    height: auto; /* Mantém a proporção original da imagem */
+    padding: 10px;
+}
+
+#btn-excluir-status{
+    background-color: #333;
+    color: #fff;
+}
+
+
+    </style>
+
+</head>
+<body>
+    <div class="logo">
+        <img src="https://alaresinternet.com.br/wp-content/themes/alares/assets/images/template/logo.png" alt="Logo">
+    </div>
+<h1>Getter - VT</h1>
+<form id="upload-form" action="processar_upload.php" method="POST" enctype="multipart/form-data">
+    <input type="file" name="arquivo_csv" accept=".csv">
+    <input type="submit" value="Enviar">
+</form>
+<!-- Campo de entrada para inserir os Protocolos (um por linha) -->
+<div id="buttons">
+<textarea id="textarea-protocolos" placeholder="Insira os Protocolos (um por linha)"></textarea>
+<button id="btn-excluir-protocolos">Excluir históricos</button>
+<button id="btn-excluir-status">Excluir por Status</button>
+<button id="btn-copiar-dados">Copiar</button>
+<button id="status-button">Livre</button>
+</div>
+<div id="tabela">
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Configure o Firebase com suas próprias credenciais
+       const firebaseConfig = {
+  apiKey: "AIzaSyBPbDGs_6DFYd0wpYvI2FnSfY_zbIFLcQQ",
+  authDomain: "grabber-7b186.firebaseapp.com",
+  databaseURL: "https://grabber-7b186-default-rtdb.firebaseio.com",
+  projectId: "grabber-7b186",
+  storageBucket: "grabber-7b186.appspot.com",
+  messagingSenderId: "551175206118",
+  appId: "1:551175206118:web:90bef5ac0391542490f727",
+  measurementId: "G-LZ6M3JN53L"
+};
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Obtém a referência para o botão no HTML
+        const button = document.getElementById("status-button");
+
+        // Função para alternar o status
+       function toggleStatus() {
+        const currentState = button.textContent;
+        const newState = currentState === "Livre" ? "Atualizando" : "Livre";
+        updateStatus(newState);
+
+        button.innerHTML = ''; // Limpa o conteúdo do botão
+    if (newState === "Atualizando") {
+        const imagem = document.createElement("img");
+        imagem.src = "atualizada.png"; // Caminho para a sua imagem
+        imagem.alt = "Imagem de Atualização"; // Texto alternativo para acessibilidade
+        button.appendChild(imagem); // Adiciona a imagem ao botão
+
+         imagem.style.width = "30px";
+    } else {
+        button.textContent = newState; // Restaura o texto "Livre"
+    }
+
+        // Adicione as linhas de código aqui
+        button.classList.add(newState.toLowerCase());
+        button.classList.remove((currentState === "Livre" ? "Atualizando" : "Livre").toLowerCase());
+
+        
+        
+    }
+
+        // Função para atualizar o status no Firebase
+        function updateStatus(newState) {
+            database.ref("status").set(newState);
+        }
+
+        // Monitora as alterações no status no Firebase
+        database.ref("status").on("value", (snapshot) => {
+            const status = snapshot.val();
+            button.textContent = status;
+        });
+
+        // Inicializa o status com base no valor atual no Firebase
+        database.ref("status").once("value", (snapshot) => {
+            const status = snapshot.val();
+            button.textContent = status;
+        });
+
+        // Adiciona um ouvinte de evento de clique ao botão
+        button.addEventListener("click", toggleStatus);
+    </script>
+<script>
+    document.getElementById("upload-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("arquivo_csv", document.querySelector('input[type="file"]').files[0]);
+
+        try {
+            const response = await fetch("processar_upload.php", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.ok) {
+                const csvData = await response.text();
+                document.getElementById("tabela").innerHTML = csvData;
+            } else {
+                console.error("Erro ao processar o arquivo CSV.");
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+
+
+
+    function criarTabelaComCSV(csvData) {
+        const tabelaDiv = document.getElementById("tabela");
+        const linhas = csvData.split("\n");
+        const tabela = document.createElement("table");
+
+        for (let i = 0; i < linhas.length; i++) {
+            const colunas = linhas[i].split(";");
+            const linha = document.createElement(i === 0 ? "thead" : "tr");
+
+            for (let j = 0; j < colunas.length; j++) {
+                const celula = i === 0 ? document.createElement("th") : document.createElement("td");
+                const valor = decodeURIComponent(escape(colunas[j])); // Força a codificação
+                celula.textContent = valor;
+                linha.appendChild(celula);
+            }
+
+            tabela.appendChild(linha);
+        }
+
+        tabelaDiv.innerHTML = ""; // Limpa o conteúdo anterior
+        tabelaDiv.appendChild(tabela);
+    }
+
+
+    document.getElementById("btn-excluir-protocolos").addEventListener("click", () => {
+        const textareaProtocolos = document.getElementById("textarea-protocolos");
+        const protocolosParaExcluir = textareaProtocolos.value.split("\n").map(protocolo => protocolo.trim());
+
+        if (protocolosParaExcluir.length === 0) {
+            alert("Por favor, insira pelo menos um Protocolo para excluir.");
+            return;
+        }
+
+        const tabela = document.querySelector("table");
+        const linhas = tabela.querySelectorAll("tr");
+
+        for (let i = linhas.length - 1; i > 0; i--) {
+            const colunaProtocolo = linhas[i].querySelector("td:nth-child(3)"); // Suponha que o Protocolo está na primeira coluna
+            
+            if (colunaProtocolo && protocolosParaExcluir.includes(colunaProtocolo.textContent.trim())) {
+                tabela.deleteRow(i);
+            }
+        }
+
+        // Limpa o campo de entrada dos Protocolos
+        textareaProtocolos.value = "";
+
+        alert("Protocolos excluídos da tabela.");
+    });
+
+    document.getElementById("btn-excluir-status").addEventListener("click", () => {
+    const tabela = document.querySelector("table");
+    const linhas = tabela.querySelectorAll("tr");
+
+    for (let i = linhas.length - 1; i > 0; i--) {
+        const colunaStatus = linhas[i].querySelector("td:nth-child(18)"); // Suponha que o Status está na vigésima coluna
+
+        if (colunaStatus) {
+            const status = colunaStatus.textContent.trim();
+
+            // Verifique se o Status não é 'Pendente' nem 'Atendimento' e oculte a linha
+            if (status !== 'Pendente' && status !== 'Atendimento') {
+                tabela.deleteRow(i);
+            }
+        }
+    }
+
+    alert("Linhas excluídas com status diferente de 'Pendente' e 'Atendimento'.");
+});
+
+    // Botão para copiar dados da tabela (exceto cabeçalho)
+    document.getElementById("btn-copiar-dados").addEventListener("click", () => {
+        const tabela = document.querySelector("table");
+        const linhas = tabela.querySelectorAll("tr");
+
+        let dadosCopiados = "";
+
+        for (let i = 1; i < linhas.length; i++) {
+            const colunas = linhas[i].querySelectorAll("td");
+            for (let j = 0; j < colunas.length; j++) {
+                dadosCopiados += colunas[j].textContent + "\t"; // Use um caractere de tabulação como separador
+            }
+            dadosCopiados += "\n"; // Quebra de linha entre as linhas de dados
+        }
+
+        // Copia os dados para a área de transferência
+        const textarea = document.createElement("textarea");
+        textarea.value = dadosCopiados;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+
+        alert("Dados copiados para a área de transferência (exceto cabeçalho).");
+    });
+    
+</script>
+</body>
+</html>
